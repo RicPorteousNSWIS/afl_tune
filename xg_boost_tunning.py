@@ -1,7 +1,7 @@
 
 #sudo docker build -t "afl_xgboot_tuner" .
 #docker run -v /path/to/where/your/data/needs/to/save/on/host:/usr/src/app/data afl_xgboot_tuner
-
+#docker run -v /Documents/AFL/container:/usr/src/app/data afl_xgboost_tuner 
 import numpy as np 
 import pandas as pd
 from sklearn.linear_model import SGDClassifier, LogisticRegression
@@ -32,10 +32,10 @@ cv = val.get_iterable()
 
 #Determine the grid
 parameters = {'nthread':[4], #when use hyperthread, xgboost may become slower
-              'learning_rate': [0.05,0.1,0.3], #so called `eta` value
-              'max_depth': [3,6],
-              'min_child_weight': [0,1,10],
-              'colsample_bytree': [0.7,1],
+              'learning_rate': [0.01,0.1,0.3,0.7], #so called `eta` value
+              'max_depth': [2,3,5,10],
+              'min_child_weight': [0,1],
+              'colsample_bytree': [0.3,0.5,0.7,1],
               'n_estimators': [10]} #number of trees, change it to 1000 for better results}
 
 
@@ -48,7 +48,7 @@ grid = GridSearchCV(xgb_clf,
        parameters,
 			cv=cv, 
 			scoring="accuracy",
-			verbose = 2,
+			verbose = 1,
 			n_jobs = -1, # -1 for complete parallelism
 			return_train_score = True)
 
@@ -59,7 +59,8 @@ grid.fit(X,Y)
 result = pd.DataFrame(grid.cv_results_)
 
 # Print to the data file
-result.to_csv('data/xg_boost_tuning_result.csv')
+print("Printing to data file")
+result.to_csv('./data/xg_boost_tuning_result.csv')
 
 # Print the best result
 best_parameters, score = grid.best_params_ , grid.best_score_ 
